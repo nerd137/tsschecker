@@ -17,6 +17,7 @@ jobs:
             arch: x86_64
 
     steps:
+    # Setup MSYS2 environment with the required packages
     - uses: msys2/setup-msys2@v2
       with:
         msystem: ${{ matrix.msystem }}
@@ -42,6 +43,15 @@ jobs:
         echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
         git config --global core.autocrlf false
 
+    # Clone, build, and install libgeneral
+    - name: build libgeneral
+      run: |
+        git clone https://github.com/tihmstar/libgeneral.git
+        cd libgeneral
+        ./autogen.sh CC=gcc CXX=g++ --enable-debug
+        make -j
+        make install
+
     # Clone and build libfragmentzip
     - name: build libfragmentzip
       run: |
@@ -51,6 +61,7 @@ jobs:
         make -j
         make install
 
+    # Clone and build tsschecker
     - name: build tsschecker
       run: |
         git clone --depth=1 --recursive https://github.com/tihmstar/tsschecker.git
