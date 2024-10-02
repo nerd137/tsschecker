@@ -1,114 +1,44 @@
-name: build-tsschecker
+name: Build tsschecker
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-windows:
-    runs-on: windows-2019
-    defaults:
-      run:
-        shell: msys2 {0}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - msystem: mingw64
-            arch: x86_64
+  build:
+    runs-on: ubuntu-latest
 
     steps:
-    # Setup MSYS2 environment with the required packages
-    - uses: msys2/setup-msys2@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v2
       with:
-        msystem: ${{ matrix.msystem }}
-        release: false
-        update: false
-        install: >-
-          base-devel
-          git
-          mingw-w64-${{ matrix.arch }}-gcc
-          make
-          libtool
-          autoconf
-          automake-wrapper
-          mingw-w64-${{ matrix.arch }}-libzip
-          mingw-w64-${{ matrix.arch }}-openssl
-          mingw-w64-${{ matrix.arch }}-curl
-          mingw-w64-${{ matrix.arch }}-pkgconf
+        submodules: recursive
 
-    - uses: actions/checkout@v4
-
-    - name: prepare environment
+    - name: Set Up Dependencies
       run: |
-        echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
-        git config --global core.autocrlf false
+        sudo apt-get update
+        sudo apt-get install -y build-essential autoconf automake libtool pkg-config \
+                                libcurl4-openssl-dev libfragmentzip-dev \
+                                libgeneral-dev libirecovery-dev libplist-dev \
+                                libssl-dev
 
-    # Clone, build, and install libplist
-    - name: build libplist
+    - name: Configure Project
       run: |
-        git clone https://github.com/libimobiledevice/libplist.git
-        cd libplist
-        ./autogen.sh CC=gcc CXX=g++ --enable-debug
-        make -j
-        make install
+        ./autogen.sh  # Ensure that autogen.sh exists and is executable
+        ./configure --prefix=/usr
 
-    # Clone, build, and install libgeneral
-    - name: build libgeneral
-      run: |
-        git clone https://github.com/tihmstar/libgeneral.git
-        cd libgeneral
-        ./autogen.sh CC=gcc CXX=g++ --enable-debug
-        make -j
-        make install
+    - name: Build Project
+      run: make
 
-    # Clone and build libfragmentzip
-    - name: build libfragmentzip
-      run: |
-        git clone https://github.com/tihmstar/libfragmentzip.git
-        cd libfragmentzip
-        ./autogen.sh CC=gcc CXX=g++ --enable-debug
-        make -j
-        make install
+    - name: Run Tests
+      run: make test  # Assuming there's a 'make test' target in the Makefile
 
-    # Clone, build, and install libimobiledevice-glue
-    - name: build libimobiledevice-glue
-      run: |
-        git clone https://github.com/libimobiledevice/libimobiledevice-glue.git
-        cd libimobiledevice-glue
-        ./autogen.sh CC=gcc CXX=g++ --enable-debug
-        make -j
-        make install
+    - name: Install Project
+      run: sudo make install
 
-    # Clone, patch, and build libirecovery
-    - name: build libirecovery
-      run: |
-        git clone https://github.com/tihmstar/libirecovery.git
-        cd libirecovery
-        # Apply patch for snprintf and format specifier issue
-        sed -i 's/snprintf(&cmdstr/snprintf(cmdstr/g' src/libirecovery.c
-        sed -i 's/"setenv filesize %d"/"setenv filesize %lu"/g' src/libirecovery.c
-        ./autogen.sh CC=gcc CXX=g++ --enable-debug
-        make -j
-        make install
-
-    # Clone and build tsschecker
-    - name: build tsschecker
-      run: |
-        git clone --depth=1 --recursive https://github.com/tihmstar/tsschecker.git
-        cd tsschecker
-        ./autogen.sh CC=gcc CXX=g++ --enable-debug
-        make -j
-
-    - name: prepare release
-      run: |
-        mkdir -p rel
-        cp -v ./tsschecker.exe rel/
-        tar -C rel -cJvf tsschecker-latest_${{ matrix.arch }}-${{ matrix.msystem }}.tar.xz .
-
-    - name: publish release
-      env:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        TAG="${GITHUB_REF##*/}-${GITHUB_SHA:0:7}"
-        gh release create "$TAG" --draft --title "Draft Release"
-        gh release upload "$TAG" tsschecker-latest_${{ matrix.arch }}-${{ matrix.msystem }}.tar.xz
+    - name: Cleanup
+      run: make clean
