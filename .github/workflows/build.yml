@@ -43,10 +43,10 @@ jobs:
         echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
         git config --global core.autocrlf false
 
-    # Clone, build, and install libplist
+    # Clone, build, and install libplist (using tihmstar version)
     - name: build libplist
       run: |
-        git clone https://github.com/libimobiledevice/libplist.git
+        git clone https://github.com/tihmstar/libplist.git
         cd libplist
         ./autogen.sh CC=gcc CXX=g++ --enable-debug
         make -j
@@ -70,10 +70,10 @@ jobs:
         make -j
         make install
 
-    # Clone, build, and install libimobiledevice-glue
+    # Clone, build, and install libimobiledevice-glue (using tihmstar version)
     - name: build libimobiledevice-glue
       run: |
-        git clone https://github.com/libimobiledevice/libimobiledevice-glue.git
+        git clone https://github.com/tihmstar/libimobiledevice-glue.git
         cd libimobiledevice-glue
         ./autogen.sh CC=gcc CXX=g++ --enable-debug
         make -j
@@ -82,7 +82,7 @@ jobs:
     # Clone and build libirecovery
     - name: build libirecovery
       run: |
-        git clone https://github.com/libimobiledevice/libirecovery.git
+        git clone https://github.com/tihmstar/libirecovery.git
         cd libirecovery
         ./autogen.sh CC=gcc CXX=g++ --enable-debug
         make -j
