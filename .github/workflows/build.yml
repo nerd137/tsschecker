@@ -17,7 +17,6 @@ jobs:
             arch: x86_64
 
     steps:
-    # Setup MSYS2 environment with the required packages
     - uses: msys2/setup-msys2@v2
       with:
         msystem: ${{ matrix.msystem }}
@@ -34,7 +33,7 @@ jobs:
           mingw-w64-${{ matrix.arch }}-libzip
           mingw-w64-${{ matrix.arch }}-openssl
           mingw-w64-${{ matrix.arch }}-curl
-          # Using mingw-w64-x86_64-pkgconf instead of mingw-w64-x86_64-pkg-config
+          mingw-w64-${{ matrix.arch }}-pkgconf
 
     - uses: actions/checkout@v4
 
@@ -52,7 +51,6 @@ jobs:
         make -j
         make install
 
-    # Clone and build tsschecker
     - name: build tsschecker
       run: |
         git clone --depth=1 --recursive https://github.com/tihmstar/tsschecker.git
