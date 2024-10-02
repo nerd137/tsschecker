@@ -34,7 +34,7 @@ jobs:
           mingw-w64-${{ matrix.arch }}-libzip
           mingw-w64-${{ matrix.arch }}-openssl
           mingw-w64-${{ matrix.arch }}-curl
-          mingw-w64-${{ matrix.arch }}-pkg-config
+          # Using mingw-w64-x86_64-pkgconf instead of mingw-w64-x86_64-pkg-config
 
     - uses: actions/checkout@v4
 
@@ -55,7 +55,7 @@ jobs:
     # Clone and build tsschecker
     - name: build tsschecker
       run: |
-        git clone --recursive https://github.com/tihmstar/tsschecker.git
+        git clone --depth=1 --recursive https://github.com/tihmstar/tsschecker.git
         cd tsschecker
         ./autogen.sh CC=gcc CXX=g++ --enable-debug
         make -j
