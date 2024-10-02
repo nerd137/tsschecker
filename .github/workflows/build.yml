@@ -34,6 +34,7 @@ jobs:
           mingw-w64-${{ matrix.arch }}-libzip
           mingw-w64-${{ matrix.arch }}-openssl
           mingw-w64-${{ matrix.arch }}-curl
+          mingw-w64-${{ matrix.arch }}-pkg-config
 
     - uses: actions/checkout@v4
 
@@ -42,10 +43,19 @@ jobs:
         echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
         git config --global core.autocrlf false
 
+    # Clone and build libfragmentzip
+    - name: build libfragmentzip
+      run: |
+        git clone https://github.com/tihmstar/libfragmentzip.git
+        cd libfragmentzip
+        ./autogen.sh CC=gcc CXX=g++ --enable-debug
+        make -j
+        make install
+
     # Clone and build tsschecker
     - name: build tsschecker
       run: |
-        git clone --depth=1 --recursive https://github.com/tihmstar/tsschecker.git
+        git clone --recursive https://github.com/tihmstar/tsschecker.git
         cd tsschecker
         ./autogen.sh CC=gcc CXX=g++ --enable-debug
         make -j
