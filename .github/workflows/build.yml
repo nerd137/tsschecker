@@ -43,10 +43,10 @@ jobs:
         echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
         git config --global core.autocrlf false
 
-    # Clone, build, and install libplist (using tihmstar version)
+    # Clone, build, and install libplist
     - name: build libplist
       run: |
-        git clone https://github.com/tihmstar/libplist.git
+        git clone https://github.com/libimobiledevice/libplist.git
         cd libplist
         ./autogen.sh CC=gcc CXX=g++ --enable-debug
         make -j
@@ -70,20 +70,23 @@ jobs:
         make -j
         make install
 
-    # Clone, build, and install libimobiledevice-glue (using tihmstar version)
+    # Clone, build, and install libimobiledevice-glue
     - name: build libimobiledevice-glue
       run: |
-        git clone https://github.com/tihmstar/libimobiledevice-glue.git
+        git clone https://github.com/libimobiledevice/libimobiledevice-glue.git
         cd libimobiledevice-glue
         ./autogen.sh CC=gcc CXX=g++ --enable-debug
         make -j
         make install
 
-    # Clone and build libirecovery
+    # Clone, patch, and build libirecovery
     - name: build libirecovery
       run: |
         git clone https://github.com/tihmstar/libirecovery.git
         cd libirecovery
+        # Apply patch for snprintf and format specifier issue
+        sed -i 's/snprintf(&cmdstr/snprintf(cmdstr/g' src/libirecovery.c
+        sed -i 's/"setenv filesize %d"/"setenv filesize %lu"/g' src/libirecovery.c
         ./autogen.sh CC=gcc CXX=g++ --enable-debug
         make -j
         make install
