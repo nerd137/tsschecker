@@ -61,6 +61,24 @@ jobs:
         make -j
         make install
 
+    # Clone and build libirecovery
+    - name: build libirecovery
+      run: |
+        git clone https://github.com/libimobiledevice/libirecovery.git
+        cd libirecovery
+        ./autogen.sh CC=gcc CXX=g++ --enable-debug
+        make -j
+        make install
+
+    # Clone and build libplist
+    - name: build libplist
+      run: |
+        git clone https://github.com/libimobiledevice/libplist.git
+        cd libplist
+        ./autogen.sh CC=gcc CXX=g++ --enable-debug
+        make -j
+        make install
+
     # Clone and build tsschecker
     - name: build tsschecker
       run: |
